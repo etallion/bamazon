@@ -40,7 +40,7 @@ function showMenu() {
 		])
 		.then(answer => {
 			switch (answer.menuItem) {
-				case 'Enter new song':
+				case 'Enter a product ID you would like to buy:':
 					newSong();
 					break;
 				case 'View all songs':
