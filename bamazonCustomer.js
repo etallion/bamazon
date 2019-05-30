@@ -31,26 +31,14 @@ function showMenu() {
 					'Hey there, what would you like to do. Please select one option:',
 				type: 'list',
 				choices: [
-					'Enter new song',
-					'View all songs',
-					'Update a song',
-					'Remove a song',
+					'Make a purchase'
 				],
 			},
 		])
 		.then(answer => {
 			switch (answer.menuItem) {
-				case 'Enter a product ID you would like to buy:':
-					newSong();
-					break;
-				case 'View all songs':
-					viewSongs();
-					break;
-				case 'Update a song':
-					updateSong();
-					break;
-				case 'Remove a song':
-					removeSong();
+				case 'Make a purchase':
+					buy();
 					break;
 				default:
 					console.log('That is not an option');
@@ -143,12 +131,12 @@ function getUpdate(id) {
 		});
 }
 
-function newSong() {
+function buy() {
 	inquirer
 		.prompt([
 			{
-				name: 'title',
-				message: 'Enter a Song Title:',
+				name: 'item_id',
+				message: 'Enter Item ID:',
 			},
 			{
 				name: 'artist',
