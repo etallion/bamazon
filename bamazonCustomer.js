@@ -114,9 +114,7 @@ function buy_ID() {
 				showMenu();
 				})
 		});
-
 }
-
 
  function isProductAvailable(id){
 	return new Promise(function(resolve, reject){
@@ -128,7 +126,7 @@ function buy_ID() {
 				showMenu();
 			} else if (res.length === 0){
 				console.log("Sorry, but that is not a valid item ID");
-				showMenu();
+				buy_ID();
 			} else {                                        
 			  if(res[0].stock_quantity > 0){
 				  resolve(true);
@@ -245,3 +243,5 @@ function makeReturn(id){
 			});
 	});
 }
+
+// Need to make sure we close the connection to databases for all possible app exits.
