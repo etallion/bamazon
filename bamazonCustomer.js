@@ -1,6 +1,19 @@
+
+//-----------------======= Customer POS Portal =======-----------------
+//Created: May 25, 2019
+//By: Will Mangimelli
+//Overview: 
+// Point of Sale tool for Bamazon. Tool gives customer users
+// ability to:
+// 1. View all inventory data
+// 2. Purchase item
+// 3. Return item
+
+//-----------------======= Packages =======-----------------
 var mysql = require('mysql');
 var inquirer = require('inquirer');
 
+//-----------------======= Database Config =======-----------------
 var connection = mysql.createConnection({
 	host: 'localhost',
 
@@ -15,12 +28,15 @@ var connection = mysql.createConnection({
 	database: 'bamazon',
 });
 
+//-----------------======= Connection =======-----------------
 connection.connect(function(err) {
     if (err) throw err;
-    viewInventory();
+	appDidOpen();
+	viewProducts();
 	
 });
 
+//-----------------======= Main Menu =======-----------------
 function showMenu() {
 	console.log('\n');
 	inquirer
@@ -28,180 +44,204 @@ function showMenu() {
 			{
 				name: 'menuItem',
 				message:
-					'Hey there, what would you like to do. Please select one option:',
+					'Please select an option:',
 				type: 'list',
 				choices: [
-					'Make a purchase'
+					'1. Show all products',
+					'2. Make a purchase',
+					'3. Make a return',
+					
 				],
 			},
 		])
 		.then(answer => {
 			switch (answer.menuItem) {
-				case 'Make a purchase':
-					buy();
+				case '2. Make a purchase':
+					buy_ID();
+					break;
+				case '3. Make a return':
+					returnGetID();
+					break;
+				case '1. Show all products':
+					viewProducts();
 					break;
 				default:
 					console.log('That is not an option');
-					showMenu();
 			}
 		});
 }
 
-function viewInventory() {
-	console.log('VIEW Inventory');
+function appDidOpen(){
+	console.log('\n############################################################################################');
+	console.log('############################################################################################');
+	console.log('#################################                          #################################');
+	console.log('#################################    WELCOME TO WHAMAZON   #################################');
+	console.log('#################################                          #################################');
+	console.log('############################################################################################');
+	console.log('############################################################################################\n');
+	console.log('\n\tHello and thank you for visting Whamazon! How may we assist you today?\n');
+}
+
+//-----------------======= Display Inventory =======-----------------
+function viewProducts() {
 	connection.query('SELECT * FROM products', function(err, res) {
 		if (err) throw err;
-		console.log('------------ Products ------------');
-		console.log('Item#\tName\tDepartment\tPrice\tQuantity');
-		res.forEach(item => {
-			const { item_id, product_name, department_name, price, stock_quantity } = item;
-			const print = item_id + '\t' + product_name + '\t' + department_name + '\t' + price + '\t' + stock_quantity;
-			console.log(print);
-		});
-		showMenu();
-	});
-}
-function viewSongs() {
-	console.log('VIEW SONGS');
-	connection.query('SELECT * FROM songs', function(err, res) {
-		if (err) throw err;
-		console.log('------------ SONGS ------------');
-		console.log('ID\tTitle\tGenre\tArtist');
-		res.forEach(song => {
-			const { id, title, genre, artist } = song;
-			const print = id + '\t' + title + '\t' + genre + '\t' + artist;
-			console.log(print);
-		});
-		showMenu();
+        //console.log('\n\t## Inventory Items ##');
+			var products = [];
+			res.forEach(item => {
+				products.push(item);
+			});
+			console.table(products);
+			showMenu()
 	});
 }
 
-function updateSong() {
-	inquirer
-		.prompt([
-			{
-				name: 'songId',
-				message: 'Enter the Id of Song:',
-			},
-		])
-		.then(function(answer) {
-			getUpdate(answer.songId);
-		});
-}
-
-function removeSong() {
-	inquirer
-		.prompt([
-			{
-				name: 'songId',
-				message: 'Enter the Id of Song:',
-			},
-		])
-		.then(function(answer) {
-			connection.query(
-				'DELETE FROM songs WHERE id=?',
-				[answer.songId],
-				function(err, res) {
-					if (err) throw err;
-					console.log('Your song was removed.');
-					showMenu();
-				},
-			);
-		});
-}
-
-function getUpdate(id) {
-	inquirer
-		.prompt([
-			{
-				name: 'title',
-				message: 'Enter the new title',
-			},
-		])
-		.then(function(answer) {
-			connection.query(
-				'UPDATE songs SET title=? WHERE id=?',
-				[answer.title, id],
-				function(err, res) {
-					if (err) throw err;
-					console.log('Your update was successful!');
-					showMenu();
-				},
-			);
-		});
-}
-
-function buy() {
+//-----------------======= Purchase Item  =======-----------------
+function buy_ID() {
 	inquirer
 		.prompt([
 			{
 				name: 'item_id',
 				message: 'Enter Item ID:',
 			},
-			{
-				name: 'artist',
-				message: "Enter the Song's Artist:",
-			},
-			{
-				name: 'genre',
-				message: 'Enter the song Genre:',
-			},
-		])
-		.then(answers => {
-			const { title, artist, genre } = answers;
-			connection.query(
-				'INSERT INTO songs SET ?',
-				{
-					title,
-					artist,
-					genre,
-				},
-				function(err) {
-					if (err) throw err;
-					console.log('Your song was created successfully!');
-					showMenu();
-				},
-			);
+		]).then(answer=> {
+			isProductAvailable(answer.item_id)
+				.then(function(results){
+					buy_Qty(answer.item_id);
+				})
+				.catch(function(err){
+				console.log("Oops! "+err);
+				showMenu();
+				})
 		});
+
 }
 
-// function queryAllSongs() {
-// 	connection.query('SELECT * FROM songs', function(err, res) {
-// 		console.log(res);
-// 		for (var i = 0; i < res.length; i++) {
-// 			console.log(
-// 				res[i].id +
-// 					' | ' +
-// 					res[i].title +
-// 					' | ' +
-// 					res[i].artist +
-// 					' | ' +
-// 					res[i].genre,
-// 			);
-// 		}
-// 		console.log('-----------------------------------');
-// 	});
-// }
 
-// function queryDanceSongs() {
-// 	var query = connection.query(
-// 		'SELECT * FROM songs WHERE genre=?',
-// 		['Dance'],
-// 		function(err, res) {
-// 			for (var i = 0; i < res.length; i++) {
-// 				console.log(
-// 					res[i].id +
-// 						' | ' +
-// 						res[i].title +
-// 						' | ' +
-// 						res[i].artist +
-// 						' | ' +
-// 						res[i].genre,
-// 				);
-// 			}
-// 		},
-// 	);
+ function isProductAvailable(id){
+	return new Promise(function(resolve, reject){
+	  connection.query(
+		'SELECT stock_quantity FROM products WHERE item_id = ?',
+		 [id], function(err, res) {
+			if(err) {
+				console.log("That's weird, something went wrong. " + err.message);
+				showMenu();
+			} else if (res.length === 0){
+				console.log("Sorry, but that is not a valid item ID");
+				showMenu();
+			} else {                                        
+			  if(res[0].stock_quantity > 0){
+				  resolve(true);
+			  }else{
+				  reject(new Error("No stock available!"));
+			  }
+		  	}
+		 }
+	   )}
+  )};
 
-// 	// logs the actual query being run
-// 	console.log(query.sql);
-// }
+function buy_Qty(id){
+	var stock_quantity;
+	var price;
+	// Let's go ahead and obtain some info from database for the item the customer wants to buy 
+	// and save it to some variables for later use.
+	connection.query('SELECT price,stock_quantity FROM products WHERE item_id = ?', [id], function(err, res) {
+		stock_quantity = res[0].stock_quantity;
+		price = res[0].price;
+		if (err) throw err;
+	});
+
+	inquirer
+		.prompt([
+			{
+			name: 'qty',
+			message: 'How many would you like to buy?',
+			validate: function(value) {
+				// make sure input value was a number and greater than zero
+				if (isNaN(value) === false && parseInt(value) > 0) {
+					//Make sure the user enters a quantity to purchase to is less than or equal the stock available
+					if (stock_quantity < value) {
+						console.log("\nInsufficient quantity. There is only " + stock_quantity + " items currently in stock.");
+						console.log("Please choose an amount smaller or equal to the available stock quantity.");
+						return false;
+					}
+					else{
+						// There is adequate inventory to fill your order. Please wait while we process your order.
+						return true;
+					}
+				} else {
+					console.log("\nInvalid entry. Please enter a positive integer value for quantity.");
+					return false;
+				}//end of stock check if statement
+			}//end of validation
+		},//end of prompt object
+	]).then(answers => {
+		var updated_stock = parseInt(stock_quantity) - parseInt(answers.qty);
+		connection.query(
+			'UPDATE products SET ? WHERE ?',
+			[{ stock_quantity : parseInt(updated_stock)}, {item_id : id}],
+			function(err) {
+				if (err) throw err;
+				console.log('Thank you for your purchase!');
+				var total = parseInt(answers.qty) * price;
+				console.log('Your total receipt amount is $' + total.toFixed(2));
+				showMenu();
+			});
+	});
+}
+
+//-----------------======= Return Item  =======-----------------
+function returnGetID() {
+	inquirer
+		.prompt([
+			{
+				name: 'item_id',
+				message: 'Enter item ID you with to return:',
+			},
+		]).then(answer=> {
+			buy_item_id = answer.item_id;
+			//console.log("ITEM ID =" + answer.item_id);
+			makeReturn(answer.item_id);
+		});
+}
+function makeReturn(id){
+	var stock_quantity;
+	var price;
+	// Let's go ahead and obtain some info from database for the item the customer 
+	// wishes to return and save it to some variables for later use.
+	connection.query('SELECT price,stock_quantity FROM products WHERE item_id = ?', [id], function(err, res) {
+		stock_quantity = res[0].stock_quantity;
+		price = res[0].price;
+		if (err) throw err;
+	});
+
+	inquirer
+		.prompt([
+			{
+			name: 'return_quantity',
+			message: 'How many are you returning?: ',
+			validate: function(value) {
+				// make sure input value was a number and greater than zero
+				if (isNaN(value) === false && parseInt(value) > 0) {
+					return true;
+				} else {
+					console.log("\nInvalid entry. Please enter a positive integer value.");
+					return false;
+				}//end if statement
+			}//end of validation
+		},//end of prompt object
+	]).then(answers => {
+		const { item_id, return_quantity } = answers;
+		var updated_stock = parseInt(stock_quantity) + parseInt(answers.return_quantity);
+		connection.query(
+			'UPDATE products SET ? WHERE ?',
+			[{ stock_quantity : parseInt(updated_stock)}, {item_id : id}],
+			function(err) {
+				if (err) throw err;
+				console.log('You are a valued customer and we look forward to your next visit!');
+				var total = parseInt(answers.return_quantity) * price * -1;
+				console.log('Your total credit amount is $' + total.toFixed(2));
+				showMenu();
+			});
+	});
+}
