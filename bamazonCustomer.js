@@ -156,7 +156,7 @@ function buy_Qty(id){
 			message: 'How many would you like to buy?',
 			validate: function(value) {
 				// make sure input value was a number and greater than zero
-				if (isNaN(value) === false && parseInt(value) > 0) {
+				if (isNaN(value) === false && parseInt(value) > 0 && ) {
 					//Make sure the user enters a quantity to purchase to is less than or equal the stock available
 					if (stock_quantity < value) {
 						console.log("\nInsufficient quantity. There is only " + stock_quantity + " items currently in stock.");
