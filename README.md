@@ -13,7 +13,7 @@ The manager tool gives a manager user the ability to "View All Product for Sale"
 
 ![Custom Tool](screenshot2.png)
 
-Handling asynchronous calls to the database within a Node Inquirer _prompt_ can get a little tricky. Luckily we can use a Promise to evaluate the result of the database call that checks for sufficient stock for the item we selected before the purchase operation can proceed.
+Handling asynchronous calls to the database within a Node Inquirer _prompt_ can get a little tricky. Luckily, we can use a Promise to evaluate the results of the database call that checks for sufficient stock for the item we selected before the purchase operation can proceed.
 
 In the image below, you can see the code for the purchase product _prompt_. After the user enters an item id the _then()_ method performs a call to database through the isProductAvailable function that returns a Promise that is handled within the original _prompt_ and directs the user to the next appropriate action. 
  
